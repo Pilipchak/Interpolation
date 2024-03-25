@@ -168,7 +168,7 @@ class counter():
                 l[i]= l[i] // polynom.Polynomial(np.round(points[i]-points[j],9))
         return l
     def Lag_poly(self) -> polynom.Polynomial:
-        return np.sum((self.values[i] * self.Lag_poly_basis()[i] for i in range(self.n)))
+        return np.sum(np.fromiter((self.values[i] * self.Lag_poly_basis()[i] for i in range(self.n)),dtype=polynom.Polynomial))
     def eval_Lag_poly(self) -> tuple[np.array,np.array]:
         x = self.points
         pln = self.Lag_poly()
