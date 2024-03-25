@@ -50,6 +50,7 @@ class windowApp(CTk, TkinterDnD.DnDWrapper):
     def createWidgets(self) -> None:
         self.check_var1 = StringVar(value=0)
         self.check_var2 = StringVar(value=0)
+        self.check_var3 = StringVar(value=0)
 
         #Buttons
         self.createButtons()
@@ -60,6 +61,7 @@ class windowApp(CTk, TkinterDnD.DnDWrapper):
         #CheckBoxes
         self.LagrangeCheck = CTkCheckBox(self,text="draw Lagrange polynoms", variable=self.check_var1, onvalue=1, offvalue=0)
         self.SplineCheck = CTkCheckBox(self,text="draw Splines polynoms", variable=self.check_var2, onvalue=1, offvalue=0)
+        self.NewtCheck = CTkCheckBox(self,text="draw Newton polynoms", variable=self.check_var3, onvalue=1, offvalue=0)
 
         #Frames
         self.frame = dataFrame(master=self)
@@ -119,6 +121,7 @@ class windowApp(CTk, TkinterDnD.DnDWrapper):
         self.inputButton.grid(sticky = 'nsew')
         self.LagrangeCheck.grid(sticky = 'nsew')
         self.SplineCheck.grid(sticky = 'nsew')
+        self.NewtCheck.grid(sticky = 'nsew')
         self.drawButton.grid(sticky = 'nsew')
         self.clearButton.grid(sticky = 'nsew')
 
@@ -128,6 +131,7 @@ class windowApp(CTk, TkinterDnD.DnDWrapper):
         self.inputButton.grid_remove()
         self.LagrangeCheck.grid_remove()
         self.SplineCheck.grid_remove()
+        self.NewtCheck.grid_remove()
         self.drawButton.grid_remove()
         self.clearButton.grid_remove()
 
@@ -139,7 +143,9 @@ class windowApp(CTk, TkinterDnD.DnDWrapper):
             self.inter.addGraph(count.eval_Lag_poly(),color='blue', label='Интерполяция многочленами Лагранжа')
         if self.check_var2.get() == '1':
             self.inter.addGraph(count.eval_cubic_spl(), color='orange', label ='Интерполяция кубическими сплайнами')
-        else:
+        if self.check_var3.get() == '1':
+            self.inter.addGraph(count.eval_Newt_poly(), color='green', label ='Интерполяция формулой Ньютона')
+        elif self.check_var1.get() == '0' and self.check_var2.get() == '0' and self.check_var3.get() == '0':
             self.inter.draw()
     def clear(self) -> None:
         try:
@@ -172,6 +178,22 @@ class counter():
     def eval_Lag_poly(self) -> tuple[np.array,np.array]:
         x = self.points
         pln = self.Lag_poly()
+        xx, yy = pln.linspace(1000, [min(x),max(x)])
+        return (xx, yy)
+    def div_dif(self, f:np.array, p:np.array, order:int = 0) -> np.double:
+        if order <= 1:
+            return (f[1]-f[0])/(p[1]-p[0])
+        else:
+            return (self.div_dif(f[1:],p[1:],order-1)-self.div_dif(f[:-1],p[:-1],order-1))/(p[-1]-p[0])
+    def Newt_form(self) -> polynom.Polynomial:
+        x, y = self.points, self.values
+        P = y[0]*polynom.Polynomial(1)
+        for i in range(1, len(x)):
+            P+=self.div_dif(y[:i+1],x[:i+1],i)*polynom.Polynomial.fromroots(x[:i])
+        return P
+    def eval_Newt_poly(self) -> tuple[np.array,np.array]:
+        x = self.points
+        pln = self.Newt_form()
         xx, yy = pln.linspace(1000, [min(x),max(x)])
         return (xx, yy)
     
